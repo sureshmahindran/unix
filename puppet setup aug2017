@@ -1,39 +1,63 @@
-PUPPET
-=======
+PUPPET SETUP
+============
 
-Client/Server communication is via https (port 8140)
+=> Client/Server communication is via https (port 8140)
 
 HOSTS Involved:
-===============
+----------------------------------
+Master: 
+IP ADDR : 192.168.122.20
+Hostname: masterxl6.example.com
 
-Enter this entry on both cliient and master:--
-cat /etc/hosts
+Client Server:
+IP ADDR : 192.168.122.21
+Hostname: node1xl6.example.com
+----------------------------------
+
+=>Add host entries on both client and master's /etc/hosts file when dns is not configured. Example:-
+
+#cat /etc/hosts
 192.168.122.20		masterxl6.example.com
 192.168.122.21		node1xl6.example.com
 
 
-Installing Puppet:
-=================
+
+=> Download and install puppetlabs package repositry
+
+# rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-5.noarch.rpm	  =>   For RHEL/CentOS 5
+
+# rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm          =>   For RHEL/CentOS 6
+
+# rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm	  =>  For RHEL/CentOS 7
 
 
-For puppet rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm
+PUPPET MASTER:
+=============
+=> Install puppet-Server package
+#yum install puppet-server
 
-MASTER:
-=======
-yum install puppet-server
-/etc/init.d/puppetmaster start
-puppet --version
-puppet resource package puppet ensure=latest
-chkconfig puppetmaster on
-puppet cert list
+=>Next, run the following command to upgrade Puppet to most newest version
+#puppet resource package puppet ensure=latest
+
+=> Once upgrade process completes, you will need to restart the puppet master server to reflect new changes.
+#/etc/init.d/puppetmaster start
+
+#puppet --version
+
+#chkconfig puppetmaster on
+
 
 CLIENT:
 ======
+
+=>Install puppet agent package
 #yum install puppet
+
 #/etc/init.d/puppet start
+
 #chkconfig puppet on
 
-On agent configure:
+=> On agent configure:
 
 [root@node1 tmp]# cat /etc/sysconfig/puppet
 PUPPET_SERVER=puppetmaster.example.com
@@ -42,47 +66,54 @@ PUPPET_SERVER=puppetmaster.example.com
 [agent]
     server=puppetmaster.example.com
 
-Now you can start your Puppet client:
+=>Now you can start your Puppet client:
 # service puppet start
 
-We need to force our client to check in with the Puppet master by using:
+=========================================================================
+
+To Register puppet agent to puppet Server :
+------------------------------------------
+
+1. CLIENT:
+
+=> We need to force our client to check in with the Puppet master by using:
 # puppet agent --test
 
-You should see something like the following output. Don't panic, this is desired as the server is still not verified on the Puppet master server.
+=>You should see something like the following output. Don't panic, this is desired as the server is still not verified on the Puppet master server.
 
 Exiting; no certificate found and waitforcert is disabled
 
 
-MASTER:
-=======
-Go back to your puppet master server and check certificate verification requests:
+2. MASTER:
+
+=> Go back to your puppet master server and check certificate verification requests:
+
 [root@masterxl6 ~]# puppet cert list
   "node1xl6.example.com" (SHA256) E4:5D:9C:5E:3D:3E:9C:F9:98:17:C8:86:55:A0:B8:1A:25:F1:0B:64:FC:31:5B:FE:7A:30:31:B2:1D:8D:C1:0D
+
+=> Sign the Certificate with below command .
 
 [root@masterxl6 ~]# puppet cert sign node1xl6.example.com
 Notice: Signed certificate request for node1xl6.example.com
 Notice: Removing file Puppet::SSL::CertificateRequest node1xl6.example.com at '/var/lib/puppet/ssl/ca/requests/node1xl6.example.com.pem'
 
-CREATE MANIFEST:
+3. CLIENT:
 
-/etc/puppet/manifests/site.pp and run below command in the client node
-
-CLIENT:
-=======
+=> Run below command on agent to verify
 #puppet agent -t
 
-=================================================================================
+
 More Commands:
 =============
 
-find out where the master manifest file is located:
+=>find out where the master manifest file is located:
 
 [root@puppetmaster manifests]# puppet master --configprint manifest
 
 /etc/puppet/manifests/site.pp
 
 
-To get an overview of all available settings and their values, use the following command:
+=>To get an overview of all available settings and their values, use the following command:
 
 root@puppetmaster# puppet master --configprint all | less
 
@@ -91,27 +122,32 @@ root@puppetmaster# puppet master --configprint all | less
 
 Manifest:
 ========
+
+
+CREATE MANIFEST Under => /etc/puppet/manifests/site.pp
+
+
 Reference Links:
+
+https://www.puppetcookbook.com
 
 https://docs.puppet.com/puppet/latest/type.html#user-attribute-shell
 
 http://www.example42.com/tutorials/PuppetTutorial/#slide-0
 
-1. Install a package:
 
 package{ 'packagename':
 	ensure => 'installed',
 	ensure => 'running',
 	}
 
+
+
 class webtools{
 	package { 'httpd':
 	ensure =>'running',
 	}
 }
-
-
-
 
 class local_repo{
 	yumrepo { 'local-repo':
@@ -122,8 +158,6 @@ class local_repo{
 	}
 	}
 
-
-
 class hostentries{
 	host {'masterxl6.example.com':
 	ensure => 'present',
@@ -132,9 +166,3 @@ class hostentries{
 	hostaliases => ['masterx16.example.com','masterxl6'],
 	}
 	}	
-
-
-
-
-
-
