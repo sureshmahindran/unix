@@ -1,5 +1,4 @@
 PUPPET SETUP
-============
 
 => Client/Server communication is via https (port 8140)
 
@@ -118,9 +117,8 @@ More Commands:
 root@puppetmaster# puppet master --configprint all | less
 
 
-================================
 
-Manifest:
+Manifests:
 ========
 
 
@@ -140,7 +138,6 @@ package{ 'packagename':
 	ensure => 'installed',
 	ensure => 'running',
 	}
-
 
 
 class webtools{
